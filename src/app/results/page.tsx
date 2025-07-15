@@ -119,32 +119,38 @@ function ResumeDisplay({ data }: { data: GenerationResult['optimizedResume'] }) 
                   <header className="text-center mb-6">
                       <h1 className="text-2xl font-bold tracking-wider uppercase">{fullName}</h1>
                       <p className="text-md text-primary font-semibold">{academicTitle}</p>
-                      <div className="flex justify-center items-center space-x-2 text-xs mt-2 text-muted-foreground">
-                          <span>{contact.phone}</span>
-                          <span>|</span>
-                          <a href={`mailto:${contact.email}`} className="hover:text-primary">{contact.email}</a>
-                          <span>|</span>
-                          <span>{contact.location}</span>
-                          {contact.linkedin && <><span>|</span><a href={contact.linkedin} className="hover:text-primary">LinkedIn</a></>}
-                      </div>
+                      {contact && (
+                        <div className="flex justify-center items-center space-x-2 text-xs mt-2 text-muted-foreground">
+                            <span>{contact.phone}</span>
+                            <span>|</span>
+                            <a href={`mailto:${contact.email}`} className="hover:text-primary">{contact.email}</a>
+                            <span>|</span>
+                            <span>{contact.location}</span>
+                            {contact.linkedin && <><span>|</span><a href={contact.linkedin} className="hover:text-primary">LinkedIn</a></>}
+                        </div>
+                      )}
                   </header>
                   <hr className="my-4 border-t-2" />
 
                   <div className="grid grid-cols-3 gap-6">
                       <div className="col-span-1 space-y-6">
-                          <div>
-                              <h2 className="text-sm font-bold uppercase tracking-widest text-primary mb-2">Education</h2>
-                              <p className="font-bold">{education.degree}</p>
-                              <p>{education.school}, {education.location}</p>
-                              <p className="text-muted-foreground">{education.graduationYear}</p>
-                          </div>
-                          <div>
-                              <h2 className="text-sm font-bold uppercase tracking-widest text-primary mb-2">Skills</h2>
-                              <ul className="list-disc list-inside">
-                                  {skills.map(skill => <li key={skill}>{skill}</li>)}
-                              </ul>
-                          </div>
-                          {awards.length > 0 && (
+                          {education && (
+                            <div>
+                                <h2 className="text-sm font-bold uppercase tracking-widest text-primary mb-2">Education</h2>
+                                <p className="font-bold">{education.degree}</p>
+                                <p>{education.school}, {education.location}</p>
+                                <p className="text-muted-foreground">{education.graduationYear}</p>
+                            </div>
+                          )}
+                          {skills && skills.length > 0 && (
+                            <div>
+                                <h2 className="text-sm font-bold uppercase tracking-widest text-primary mb-2">Skills</h2>
+                                <ul className="list-disc list-inside">
+                                    {skills.map(skill => <li key={skill}>{skill}</li>)}
+                                </ul>
+                            </div>
+                          )}
+                          {awards && awards.length > 0 && (
                             <div>
                                 <h2 className="text-sm font-bold uppercase tracking-widest text-primary mb-2">Awards</h2>
                                 {awards.map(award => (
@@ -159,38 +165,44 @@ function ResumeDisplay({ data }: { data: GenerationResult['optimizedResume'] }) 
                       </div>
 
                       <div className="col-span-2 space-y-6">
-                           <div>
+                           {careerObjective && (
+                            <div>
                                 <h2 className="text-sm font-bold uppercase tracking-widest text-primary mb-2">Career Objective</h2>
                                 <p className="text-justify">{careerObjective}</p>
                             </div>
-                          <div>
-                              <h2 className="text-sm font-bold uppercase tracking-widest text-primary mb-2">Experience</h2>
-                              {experience.map(job => (
-                                  <div key={job.title} className="mb-4">
-                                      <div className="flex justify-between items-baseline">
-                                        <h3 className="font-bold">{job.title}</h3>
-                                        <p className="text-xs text-muted-foreground">{job.dateRange}</p>
-                                      </div>
-                                      <ul className="list-disc list-inside ml-4 mt-1">
-                                          {job.accomplishments.map(acc => <li key={acc}>{acc}</li>)}
-                                      </ul>
-                                  </div>
-                              ))}
-                          </div>
-                          <div>
-                              <h2 className="text-sm font-bold uppercase tracking-widest text-primary mb-2">Projects</h2>
-                              {projects.map(proj => (
-                                  <div key={proj.name} className="mb-4">
-                                      <div className="flex justify-between items-baseline">
-                                        <h3 className="font-bold">{proj.name}</h3>
-                                        <p className="text-xs text-muted-foreground">{proj.dateRange}</p>
-                                      </div>
-                                      <ul className="list-disc list-inside ml-4 mt-1">
-                                          {proj.description.map(desc => <li key={desc}>{desc}</li>)}
-                                      </ul>
-                                  </div>
-                              ))}
-                          </div>
+                           )}
+                          {experience && experience.length > 0 && (
+                            <div>
+                                <h2 className="text-sm font-bold uppercase tracking-widest text-primary mb-2">Experience</h2>
+                                {experience.map(job => (
+                                    <div key={job.title} className="mb-4">
+                                        <div className="flex justify-between items-baseline">
+                                          <h3 className="font-bold">{job.title}</h3>
+                                          <p className="text-xs text-muted-foreground">{job.dateRange}</p>
+                                        </div>
+                                        <ul className="list-disc list-inside ml-4 mt-1">
+                                            {job.accomplishments.map(acc => <li key={acc}>{acc}</li>)}
+                                        </ul>
+                                    </div>
+                                ))}
+                            </div>
+                          )}
+                          {projects && projects.length > 0 && (
+                            <div>
+                                <h2 className="text-sm font-bold uppercase tracking-widest text-primary mb-2">Projects</h2>
+                                {projects.map(proj => (
+                                    <div key={proj.name} className="mb-4">
+                                        <div className="flex justify-between items-baseline">
+                                          <h3 className="font-bold">{proj.name}</h3>
+                                          <p className="text-xs text-muted-foreground">{proj.dateRange}</p>
+                                        </div>
+                                        <ul className="list-disc list-inside ml-4 mt-1">
+                                            {proj.description.map(desc => <li key={desc}>{desc}</li>)}
+                                        </ul>
+                                    </div>
+                                ))}
+                            </div>
+                          )}
                       </div>
                   </div>
               </div>
