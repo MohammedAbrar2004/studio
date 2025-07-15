@@ -63,28 +63,28 @@ export function FormFields() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="name">Full Name</Label>
-          <Input id="name" name="name" placeholder="John Doe" required />
+          <Input id="name" name="name" placeholder="" required />
         </div>
         <div className="space-y-2">
           <Label htmlFor="email">Email Address</Label>
-          <Input id="email" name="email" type="email" placeholder="john.doe@example.com" required />
+          <Input id="email" name="email" type="email" placeholder="" required />
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="phone">Phone Number</Label>
-          <Input id="phone" name="phone" placeholder="+1 (555) 123-4567" required />
+          <Input id="phone" name="phone" placeholder="" required />
         </div>
         <div className="space-y-2">
           <Label htmlFor="graduation-year">Graduation Year</Label>
-          <Input id="graduation-year" name="graduationYear" placeholder="2025" required />
+          <Input id="graduation-year" name="graduationYear" placeholder="" required />
         </div>
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="region">Region</Label>
-        <Input id="region" name="region" placeholder="e.g., San Francisco Bay Area, USA" required />
+        <Input id="region" name="region" placeholder="" required />
       </div>
 
       <div className="space-y-2">
