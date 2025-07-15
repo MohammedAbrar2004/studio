@@ -1,6 +1,7 @@
 'use client';
 
 import { useActionState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 
 import { generateContent } from '@/app/actions';
@@ -18,6 +19,7 @@ const initialState = {
 export default function Home() {
   const [state, formAction] = useActionState(generateContent, initialState);
   const { toast } = useToast();
+  const router = useRouter();
 
   useEffect(() => {
     if (state.error) {
@@ -27,7 +29,12 @@ export default function Home() {
         variant: 'destructive',
       });
     }
-  }, [state, toast]);
+    if (state.data) {
+      // Store data in session storage and redirect
+      sessionStorage.setItem('generationResult', JSON.stringify(state.data));
+      router.push('/results');
+    }
+  }, [state, toast, router]);
 
   return (
     <div className="min-h-screen bg-background font-sans">
@@ -49,7 +56,7 @@ export default function Home() {
             </Card>
 
             <div className="mt-8 lg:mt-0">
-              <OutputDisplay data={state.data} />
+              <OutputDisplay />
             </div>
             
           </div>
