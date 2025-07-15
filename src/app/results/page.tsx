@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Download, FileText, Mail, FileCheck2, Copy } from 'lucide-react';
-import type { OptimizeResumeOutput } from '@/ai/flows/optimize-resume';
+import type { GenerationResult } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { jsPDF } from 'jspdf';
 import { copyToClipboard } from '@/lib/utils';
@@ -48,7 +48,7 @@ function OutputActions({ content, filename, isPdf = false }: { content: string; 
 
 
 export default function ResultsPage() {
-  const [data, setData] = useState<OptimizeResumeOutput | null>(null);
+  const [data, setData] = useState<GenerationResult | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const { toast } = useToast();

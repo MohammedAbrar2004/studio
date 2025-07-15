@@ -2,6 +2,8 @@
 
 import { z } from 'zod';
 import { optimizeResume, type OptimizeResumeInput, type OptimizeResumeOutput } from '@/ai/flows/optimize-resume';
+import { generateCoverLetter, type GenerateCoverLetterInput } from '@/ai/flows/generate-cover-letter';
+import { generateEmail, type GenerateEmailInput } from '@/ai/flows/generate-email';
 
 const FormSchema = z.object({
   name: z.string().min(1, 'Name is required.'),
@@ -15,8 +17,14 @@ const FormSchema = z.object({
   jobDescription: z.string().min(20, 'Job description must be at least 20 characters long.'),
 });
 
+export type GenerationResult = {
+  optimizedResume: string;
+  coverLetter: string;
+  email: string;
+}
+
 export type State = {
-  data: OptimizeResumeOutput | null;
+  data: GenerationResult | null;
   error: string | null;
 };
 
@@ -37,23 +45,51 @@ export async function generateContent(prevState: State, formData: FormData): Pro
     Name: ${name}
     Email: ${email}
     Phone: ${phone}
+    Address/Region: ${region}
     Graduation Year: ${graduationYear}
-    Region: ${region}
     Skills: ${skills}
     Projects: ${projects}
   `.trim();
 
-  const input: OptimizeResumeInput = {
+  const optimizeResumeInput: OptimizeResumeInput = {
     resumeDataUri,
     jobDescription,
     userDetails,
   };
 
   try {
-    const output = await optimizeResume(input);
-    if (!output || !output.optimizedResume) {
-      throw new Error("The AI failed to generate content. Please try again with more detailed inputs.");
+    const { optimizedResume } = await optimizeResume(optimizeResumeInput);
+    if (!optimizedResume) {
+      throw new Error("The AI failed to generate the optimized resume.");
     }
+
+    const coverLetterInput: GenerateCoverLetterInput = {
+        personalDetails: userDetails,
+        jobDescription,
+        resume: optimizedResume,
+    };
+    const { coverLetter } = await generateCoverLetter(coverLetterInput);
+    if (!coverLetter) {
+        throw new Error("The AI failed to generate the cover letter.");
+    }
+    
+    const emailInput: GenerateEmailInput = {
+        jobDescription,
+        resume: optimizedResume,
+        coverLetter,
+        personalDetails: { name, email, phone }
+    };
+    const { email: emailContent } = await generateEmail(emailInput);
+    if (!emailContent) {
+        throw new Error("The AI failed to generate the email.");
+    }
+
+    const output: GenerationResult = {
+      optimizedResume,
+      coverLetter,
+      email: emailContent,
+    };
+    
     return { data: output, error: null };
   } catch (e: any) {
     console.error(e);

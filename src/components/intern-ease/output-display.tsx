@@ -4,10 +4,10 @@ import { useFormStatus } from 'react-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FileText } from 'lucide-react';
-import type { OptimizeResumeOutput } from '@/ai/flows/optimize-resume';
+import type { GenerationResult } from '@/app/actions';
 
 interface OutputDisplayProps {
-  data?: OptimizeResumeOutput | null; // Make data optional
+  data?: GenerationResult | null; // Make data optional
 }
 
 function OutputSkeleton() {

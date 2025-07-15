@@ -24,8 +24,6 @@ export type OptimizeResumeInput = z.infer<typeof OptimizeResumeInputSchema>;
 
 const OptimizeResumeOutputSchema = z.object({
   optimizedResume: z.string().describe('The optimized resume.'),
-  coverLetter: z.string().describe('A cover letter tailored to the job description.'),
-  email: z.string().describe('An email to be sent along with the resume.'),
 });
 export type OptimizeResumeOutput = z.infer<typeof OptimizeResumeOutputSchema>;
 
@@ -40,8 +38,6 @@ const prompt = ai.definePrompt({
   prompt: `You are an expert resume optimizer specializing in helping students get internships.
 
 You will take the user's current resume, job description, and user details, and you will generate a new resume that highlights the skills and experience most relevant to the job, optimizing for ATS scores.
-
-You will also generate a cover letter tailored to the job description and an email to be sent along with the resume.
 
 Use the following information to optimize the resume.
 
