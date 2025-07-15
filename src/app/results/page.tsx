@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
@@ -19,29 +20,47 @@ function DownloadButton({ contentRef, filename }: { contentRef: React.RefObject<
     const element = contentRef.current;
     if (!element) return;
 
-    const canvas = await html2canvas(element, { scale: 2 });
-    const data = canvas.toDataURL('image/png');
+    // Temporarily apply print-friendly styles
+    element.classList.add('print-friendly');
 
+    const canvas = await html2canvas(element, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff', // Ensure background is white
+    });
+
+    // Remove print-friendly styles
+    element.classList.remove('print-friendly');
+
+    const imgData = canvas.toDataURL('image/png');
     const pdf = new jsPDF('p', 'mm', 'a4');
+    
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = pdf.internal.pageSize.getHeight();
 
-    const imgWidth = canvas.width;
-    const imgHeight = canvas.height;
-    const ratio = imgWidth / imgHeight;
-
-    let newImgWidth = pdfWidth;
-    let newImgHeight = newImgWidth / ratio;
+    const imgProps = pdf.getImageProperties(imgData);
+    const imgWidth = imgProps.width;
+    const imgHeight = imgProps.height;
     
-    if (newImgHeight > pdfHeight) {
-      newImgHeight = pdfHeight;
-      newImgWidth = newImgHeight * ratio;
+    const ratio = imgWidth / imgHeight;
+    const pageImgWidth = pdfWidth - 20; // with some margin
+    const pageImgHeight = pageImgWidth / ratio;
+    
+    let heightLeft = imgHeight;
+    let position = 0;
+    
+    // Add first page
+    pdf.addImage(imgData, 'PNG', 10, position, pageImgWidth, pageImgHeight);
+    heightLeft -= imgProps.height * (pdfHeight / pageImgHeight);
+
+    // Add new pages if content is long
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', 10, position * (pageImgWidth/imgWidth), pageImgWidth, pageImgHeight);
+      heightLeft -= imgProps.height * (pdfHeight / pageImgHeight);
     }
-
-    const x = (pdfWidth - newImgWidth) / 2;
-    const y = 0; // Start from top
-
-    pdf.addImage(data, 'PNG', x, y, newImgWidth, newImgHeight);
+    
     pdf.save(`${filename}.pdf`);
   };
 
@@ -71,7 +90,7 @@ function CoverLetterDisplay({ data }: { data: GenerationResult['coverLetter'] })
     return (
         <Card>
             <CardContent className="p-6">
-                <div ref={contentRef} className="bg-card p-8 font-serif text-sm">
+                <div ref={contentRef} className="bg-card p-8 font-serif text-sm printable-content">
                     <div className="mb-8 text-left">
                         <p className="font-bold">{applicant.name}</p>
                         <p>{applicant.address}</p>
@@ -115,7 +134,7 @@ function ResumeDisplay({ data }: { data: GenerationResult['optimizedResume'] }) 
   return (
       <Card>
           <CardContent className="p-6">
-              <div ref={contentRef} className="bg-card p-6 font-sans text-sm">
+              <div ref={contentRef} className="bg-card p-6 font-sans text-sm printable-content">
                   <header className="text-center mb-6">
                       <h1 className="text-2xl font-bold tracking-wider uppercase">{fullName}</h1>
                       <p className="text-md text-primary font-semibold">{academicTitle}</p>
@@ -256,6 +275,25 @@ export default function ResultsPage() {
 
   return (
     <div className="min-h-screen bg-background font-sans p-4 sm:p-8">
+      <style jsx global>{`
+        .print-friendly {
+          background-color: #ffffff !important;
+          color: #000000 !important;
+        }
+        .print-friendly * {
+          color: #000000 !important;
+          border-color: #000000 !important;
+        }
+        .print-friendly .text-primary {
+          color: #000000 !important;
+        }
+        .print-friendly .text-muted-foreground {
+          color: #333333 !important;
+        }
+        .print-friendly .hover\\:text-primary:hover {
+            color: #000000 !important;
+        }
+      `}</style>
       <main className="container mx-auto">
         <Card>
           <CardHeader>
