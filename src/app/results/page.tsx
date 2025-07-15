@@ -15,24 +15,28 @@ import { copyToClipboard } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Helper component for the PDF download button
-function DownloadButton({ contentRef, filename }: { contentRef: React.RefObject<HTMLDivElement>, filename: string }) {
+function DownloadButton({ contentRef, filename, isResume = false }: { contentRef: React.RefObject<HTMLDivElement>, filename: string, isResume?: boolean }) {
   const handleDownloadPdf = async () => {
     const element = contentRef.current;
     if (!element) return;
 
     // Temporarily apply print-friendly styles
     element.classList.add('print-friendly');
+    if (isResume) {
+        element.classList.add('resume-pdf-export');
+    }
 
     const canvas = await html2canvas(element, {
-      scale: 2,
+      scale: 2, // Higher scale for better quality
       useCORS: true,
-      backgroundColor: '#ffffff', // Ensure background is white
-      windowWidth: element.scrollWidth,
-      windowHeight: element.scrollHeight
+      backgroundColor: '#ffffff',
     });
 
     // Remove print-friendly styles
     element.classList.remove('print-friendly');
+    if (isResume) {
+        element.classList.remove('resume-pdf-export');
+    }
 
     const imgData = canvas.toDataURL('image/png');
     const pdf = new jsPDF('p', 'mm', 'a4');
@@ -40,22 +44,29 @@ function DownloadButton({ contentRef, filename }: { contentRef: React.RefObject<
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = pdf.internal.pageSize.getHeight();
     const margin = 25.4; // 1 inch in mm
+    
     const contentWidth = pdfWidth - (margin * 2);
+    const contentHeight = pdfHeight - (margin * 2);
 
     const imgProps = pdf.getImageProperties(imgData);
     const imgHeight = (imgProps.height * contentWidth) / imgProps.width;
-    const contentHeight = pdfHeight - (margin * 2);
 
     let heightLeft = imgHeight;
     let position = 0;
+    const maxPages = isResume ? 2 : Infinity;
+    let pageCount = 0;
 
+    // Add first page
     pdf.addImage(imgData, 'PNG', margin, margin, contentWidth, imgHeight);
     heightLeft -= contentHeight;
+    pageCount++;
 
-    while (heightLeft > 0) {
+    while (heightLeft > 0 && pageCount < maxPages) {
       position = heightLeft - imgHeight;
       pdf.addPage();
-      pdf.addImage(imgData, 'PNG', margin, position + margin, contentWidth, imgHeight);
+      pageCount++;
+      // The y position must be negative
+      pdf.addImage(imgData, 'PNG', margin, position - margin, contentWidth, imgHeight);
       heightLeft -= contentHeight;
     }
     
@@ -224,7 +235,7 @@ function ResumeDisplay({ data }: { data: GenerationResult['optimizedResume'] }) 
                   </div>
               </div>
               <div className="mt-4 flex space-x-2">
-                  <DownloadButton contentRef={contentRef} filename="optimized-resume" />
+                  <DownloadButton contentRef={contentRef} filename="optimized-resume" isResume={true} />
               </div>
           </CardContent>
       </Card>
@@ -291,6 +302,25 @@ export default function ResultsPage() {
         .print-friendly .hover\\:text-primary:hover {
             color: #000000 !important;
         }
+        .resume-pdf-export {
+            font-size: 10px !important;
+        }
+        .resume-pdf-export h1 {
+            font-size: 20px !important;
+        }
+        .resume-pdf-export h2 {
+            font-size: 10px !important;
+        }
+        .resume-pdf-export h3 {
+            font-size: 10px !important;
+        }
+        .resume-pdf-export p, .resume-pdf-export div, .resume-pdf-export span, .resume-pdf-export a, .resume-pdf-export li {
+            font-size: 9px !important;
+        }
+        .resume-pdf-export .text-xs {
+            font-size: 8px !important;
+        }
+
       `}</style>
       <main className="container mx-auto">
         <Card>
