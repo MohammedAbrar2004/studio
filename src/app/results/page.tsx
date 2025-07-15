@@ -27,6 +27,8 @@ function DownloadButton({ contentRef, filename }: { contentRef: React.RefObject<
       scale: 2,
       useCORS: true,
       backgroundColor: '#ffffff', // Ensure background is white
+      windowWidth: element.scrollWidth,
+      windowHeight: element.scrollHeight
     });
 
     // Remove print-friendly styles
@@ -37,28 +39,24 @@ function DownloadButton({ contentRef, filename }: { contentRef: React.RefObject<
     
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = pdf.internal.pageSize.getHeight();
+    const margin = 25.4; // 1 inch in mm
+    const contentWidth = pdfWidth - (margin * 2);
 
     const imgProps = pdf.getImageProperties(imgData);
-    const imgWidth = imgProps.width;
-    const imgHeight = imgProps.height;
-    
-    const ratio = imgWidth / imgHeight;
-    const pageImgWidth = pdfWidth - 20; // with some margin
-    const pageImgHeight = pageImgWidth / ratio;
-    
+    const imgHeight = (imgProps.height * contentWidth) / imgProps.width;
+    const contentHeight = pdfHeight - (margin * 2);
+
     let heightLeft = imgHeight;
     let position = 0;
-    
-    // Add first page
-    pdf.addImage(imgData, 'PNG', 10, position, pageImgWidth, pageImgHeight);
-    heightLeft -= imgProps.height * (pdfHeight / pageImgHeight);
 
-    // Add new pages if content is long
+    pdf.addImage(imgData, 'PNG', margin, margin, contentWidth, imgHeight);
+    heightLeft -= contentHeight;
+
     while (heightLeft > 0) {
       position = heightLeft - imgHeight;
       pdf.addPage();
-      pdf.addImage(imgData, 'PNG', 10, position * (pageImgWidth/imgWidth), pageImgWidth, pageImgHeight);
-      heightLeft -= imgProps.height * (pdfHeight / pageImgHeight);
+      pdf.addImage(imgData, 'PNG', margin, position + margin, contentWidth, imgHeight);
+      heightLeft -= contentHeight;
     }
     
     pdf.save(`${filename}.pdf`);
