@@ -2,8 +2,8 @@
 
 import { z } from 'zod';
 import { optimizeResume, type OptimizeResumeInput, type OptimizeResumeOutput } from '@/ai/flows/optimize-resume';
-import { generateCoverLetter, type GenerateCoverLetterInput } from '@/ai/flows/generate-cover-letter';
-import { generateEmail, type GenerateEmailInput } from '@/ai/flows/generate-email';
+import { generateCoverLetter, type GenerateCoverLetterInput, type GenerateCoverLetterOutput } from '@/ai/flows/generate-cover-letter';
+import { generateEmail, type GenerateEmailInput, type GenerateEmailOutput } from '@/ai/flows/generate-email';
 
 const FormSchema = z.object({
   name: z.string().min(1, 'Name is required.'),
@@ -18,8 +18,8 @@ const FormSchema = z.object({
 });
 
 export type GenerationResult = {
-  optimizedResume: string;
-  coverLetter: string;
+  optimizedResume: OptimizeResumeOutput;
+  coverLetter: GenerateCoverLetterOutput;
   email: string;
 }
 
@@ -58,7 +58,7 @@ export async function generateContent(prevState: State, formData: FormData): Pro
   };
 
   try {
-    const { optimizedResume } = await optimizeResume(optimizeResumeInput);
+    const optimizedResume  = await optimizeResume(optimizeResumeInput);
     if (!optimizedResume) {
       throw new Error("The AI failed to generate the optimized resume.");
     }
@@ -68,15 +68,26 @@ export async function generateContent(prevState: State, formData: FormData): Pro
         jobDescription,
         resume: optimizedResume,
     };
-    const { coverLetter } = await generateCoverLetter(coverLetterInput);
+    const coverLetter = await generateCoverLetter(coverLetterInput);
     if (!coverLetter) {
         throw new Error("The AI failed to generate the cover letter.");
     }
     
+    // We need to re-construct the resume string for the email generation for now.
+    const resumeString = `
+      ${optimizedResume.fullName} - ${optimizedResume.academicTitle}
+      Objective: ${optimizedResume.careerObjective}
+      Skills: ${optimizedResume.skills.join(', ')}
+    `.trim();
+
+    const coverLetterString = `
+      ${coverLetter.body.join('\n\n')}
+    `.trim();
+
     const emailInput: GenerateEmailInput = {
         jobDescription,
-        resume: optimizedResume,
-        coverLetter,
+        resume: resumeString,
+        coverLetter: coverLetterString,
         personalDetails: { name, email, phone }
     };
     const { email: emailContent } = await generateEmail(emailInput);
